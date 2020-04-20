@@ -6,9 +6,16 @@ import android.content.Intent
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import ipca.example.photocatalog.models.PhotoItem
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.row_photo.*
+import kotlinx.android.synthetic.main.row_photo.view.*
+import kotlinx.android.synthetic.main.row_photo.view.imageViewPhoto
 
 import kotlin.collections.ArrayList
 
@@ -16,9 +23,13 @@ class MainActivity : AppCompatActivity() {
 
     val photos : MutableList<PhotoItem> = ArrayList<PhotoItem>()
 
+    val adapter = PhotosAdapter()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        listViewPhotos.adapter = adapter
 
         requestPermission()
         //Create a list view with taken photos array
@@ -27,9 +38,43 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, PhotoDetailActivity::class.java)
            // startActivity(intent)
             startActivityForResult(intent, 1002)
+
+
         }
 
     }
+
+    inner class PhotosAdapter : BaseAdapter() {
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+
+            val view = layoutInflater.inflate(R.layout.row_photo, parent, false)
+            view.textViewDate.text = photos[position].date.toString()
+            view.textViewDescription.text = photos[position].description
+            view.textViewPath.text = photos[position].filePath
+
+            loadImageFromCard(photos[position].filePath ?: "").let {
+                view.imageViewPhoto.setImageBitmap(it)
+            }
+
+            return view
+
+        }
+
+        override fun getItem(position: Int): Any {
+            return photos[position]
+        }
+
+        override fun getItemId(position: Int): Long {
+            return 0
+        }
+
+        override fun getCount(): Int {
+            return photos.size
+        }
+
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -52,8 +97,8 @@ class MainActivity : AppCompatActivity() {
 
                     photos.add(photoItem)
 
+                    adapter.notifyDataSetChanged()
                     // adapter.notifyDataSetChanged()
-
                 }
             }
         }
